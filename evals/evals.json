@@ -1,0 +1,29 @@
+{
+  "skill_name": "agent-harness-verifier",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我改了 ~/.claude/settings.json 和 ~/.local/bin/openclaude-run，想确认 openclaude 还能正常启动、模型还是 deepseek-v4-flash、代理是通的。verify 一下。",
+      "expected_output": "claude code 静态全 PASS；custom/local block 因 claudex+openclaude 存在而运行且全 PASS；TUI /status 显示配置的模型、无 400/image_url；RESULT: ALL PASS。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我刚加了 block-image hook，改完 settings.json 想确认它在 text-only 的 openclaude 下真的拦 png，别的 claude 会话不受影响。帮我验证 scoping 对不对。",
+      "expected_output": "带 scoping 标记读 png → exit 2；无标记 → exit 0；settings.json PreToolUse matcher 指向存在脚本；TUI 无 400；原理按 text-only 模型不能 Read 图片解释。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "机器上有 claude、codex、pi、opencode 好几个 agent。我改了一堆配置，把所有 harness 都 verify 一遍，列出每个的配置合法性和 secret 文件状态。",
+      "expected_output": "discover.sh 列出全部已装 harness；verify.sh 每类配置合法性（JSON/TOML/JSONC）+ auth.json/.credentials mode 0600；逐 harness PASS/FAIL 表 + 各 harness configured model。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "全新机器，只装了 opencode，没有 claude/codex/pi，也没有 claudex。verify 一下我的 opencode 配置。",
+      "expected_output": "discover.sh 只列 opencode；verify.sh 只跑 opencode 检查 + secret hygiene，claude/codex/pi 和 custom/local (claudex) block 全部跳过并明确说明 not installed；不报任何与缺失 harness 相关的 FAIL。",
+      "files": []
+    }
+  ]
+}
