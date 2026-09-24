@@ -39,7 +39,7 @@ else
   info "Tailscale CLI not installed; continuing with SSH probe"
 fi
 
-REMOTE_OUTPUT="$(ssh -o BatchMode=yes -o ConnectTimeout="$CONNECT_TIMEOUT" "$HOST_ALIAS" 'printf "hostname=%s\n" "$(hostname)"; printf "os=%s\n" "$(sw_vers -productVersion 2>/dev/null || uname -s)"; printf "user=%s\n" "$(id -un)' 2>&1)"
+REMOTE_OUTPUT="$(ssh -o BatchMode=yes -o ConnectTimeout="$CONNECT_TIMEOUT" "$HOST_ALIAS" 'printf "hostname=%s\n" "$(hostname)"; printf "os=%s\n" "$(sw_vers -productVersion 2>/dev/null || uname -s)"; printf "user=%s\n" "$(id -un)"' 2>&1)"
 SSH_EXIT=$?
 if [ "$SSH_EXIT" -ne 0 ]; then
   fail "SSH probe failed (exit=$SSH_EXIT)"
