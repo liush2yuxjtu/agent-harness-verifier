@@ -133,3 +133,15 @@ runtime-vs-config model mismatch.
 - opencode.jsonc allows comments — use the comment-stripping check, not strict JSON.
 - Don't kick off real work in a verify TUI (esp. pi tasks/loops, opencode sessions) — boot + read
   status + exit only.
+
+## Mac mini → MacBook Pro connectivity
+
+When the task is to verify the existing MBP route, run:
+
+```bash
+bash scripts/verify-mbp-connection.sh
+```
+
+This is a read-only check of SSH alias resolution, optional Tailscale peer visibility, and a remote hostname/OS/user probe. It validates Mac mini → MBP only. It does not claim reverse connectivity or full harness health.
+
+The manual GitHub Actions workflow `.github/workflows/verify-mbp.yml` must run on a self-hosted runner inside the private Tailnet (for example, a Mac mini runner labelled `mbp-verifier`). GitHub-hosted runners cannot reach the private Tailnet.
