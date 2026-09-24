@@ -1,0 +1,24 @@
+name: Verify MacBook Pro connection
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_hostname:
+        description: "Optional exact hostname expected from the MBP"
+        required: false
+        type: string
+
+jobs:
+  verify-mbp:
+    # This must run on a self-hosted Mac mini/Tailscale runner.
+    # GitHub-hosted runners cannot reach the private Tailnet.
+    runs-on: [self-hosted, macOS, mbp-verifier]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout verifier
+        uses: actions/checkout@v4
+
+      - name: Verify Mac mini to MBP route
+        env:
+          MBP_EXPECTED_HOSTNAME: ${{ inputs.expected_hostname }}
+        run: bash scripts/verify-mbp-connection.sh
