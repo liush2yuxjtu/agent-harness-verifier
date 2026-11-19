@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {ADVISOR_SCHEMA, buildAdvisorPrompt, parseAdvisorResponse, stripToolServersFromConfig, validateAdvisorInput} from "../src/core.js";
+import {ADVISOR_SCHEMA, buildAdvisorPrompt, mergeDenyReadPaths, parseAdvisorResponse, stripToolServersFromConfig, validateAdvisorInput} from "../src/core.js";
 
 const validAdvice = {
   verdict: "challenge",
@@ -39,6 +39,15 @@ test("strips MCP, plugin, and app tables but preserves provider routing", () => 
   assert.match(result, /base_url = "https:\/\/proxy.example"/);
   assert.match(result, /\[features\]/);
   assert.doesNotMatch(result, /mcp_servers|proxy\.example.*TOKEN|\[plugins\]/);
+});
+
+test("adds deny-read rules for private paths without losing existing rules", () => {
+  const config = 'model = "gpt-6-astra"\n[permissions.filesystem]\ndeny_read = ["/existing/private"]\n[features]\nshell_tool = true\n';
+  const result = mergeDenyReadPaths(config, ["/tmp/advisor-home", "/Users/tester/**"]);
+  assert.match(result, /\/existing\/private/);
+  assert.match(result, /\/tmp\/advisor-home/);
+  assert.match(result, /\/Users\/tester\/\*\*/);
+  assert.match(result, /\[features\]/);
 });
 
 test("parses valid advisor output and rejects malformed output", () => {
