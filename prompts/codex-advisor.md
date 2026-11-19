@@ -12,7 +12,7 @@
 
 ## Independent Advisor tool
 
-The `advisor` MCP tool is an independent, read-only reviewer. It returns advice; it does not implement changes.
+The `advisor` MCP tool is an independent, read-only reviewer. It returns advice; it does not implement changes. If the tool is not available in the current session, do not invent it or stop; perform an independent self-review and continue.
 
 Call `advisor`:
 1. Before substantive work on a non-trivial task, after initial orientation but before writing code or committing to a major interpretation.
