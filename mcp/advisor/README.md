@@ -13,7 +13,7 @@ Codex main agent
             ├─ copied config with MCP / apps / plugin tables removed
             ├─ temporary advisor-only AGENTS.md
             ├─ read-only sandbox
-            ├─ shell / unified exec / code mode / multi-agent / apps / plugins / web search disabled
+            ├─ shell / unified exec / code mode / multi-agent v1+v2 / apps / plugins / all web-search features disabled
             └─ JSON advice only
 ```
 
