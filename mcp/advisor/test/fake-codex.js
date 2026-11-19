@@ -5,7 +5,7 @@ import path from "node:path";
 const args = process.argv.slice(2);
 const outputIndex = args.indexOf("--output-last-message");
 const schemaIndex = args.indexOf("--output-schema");
-for (const feature of ["shell_tool", "unified_exec", "code_mode_host", "multi_agent", "apps", "plugins", "web_search"]) {
+for (const feature of ["shell_tool", "unified_exec", "code_mode_host", "multi_agent", "multi_agent_v2", "apps", "plugins", "web_search_request", "web_search_cached", "standalone_web_search"]) {
   if (!args.includes("--disable") || !args.includes(feature)) process.exit(21);
 }
 if (outputIndex < 0 || schemaIndex < 0) process.exit(22);
