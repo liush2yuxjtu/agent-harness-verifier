@@ -1,5 +1,14 @@
 import { spawn } from "node:child_process";
-import { chmod, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  stat,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ADVISOR_SCHEMA, buildAdvisorPrompt, DEFAULT_MODEL, parseAdvisorResponse, stripToolServersFromConfig } from "./core.js";
@@ -84,7 +93,9 @@ export async function runCodexAdvisor({context, decision_point, focus}) {
       "--model", model, "--output-schema", schemaPath, "--output-last-message", outputPath,
       "--cd", workspace,
       "--disable", "shell_tool", "--disable", "unified_exec", "--disable", "code_mode_host",
-      "--disable", "multi_agent", "--disable", "apps", "--disable", "plugins", "--disable", "web_search",
+      "--disable", "multi_agent", "--disable", "multi_agent_v2",
+      "--disable", "apps", "--disable", "plugins",
+      "--disable", "web_search_request", "--disable", "web_search_cached", "--disable", "standalone_web_search",
       "-c", "multi_agent_v2={enabled=false,max_concurrent_threads_per_session=1}", "-"
     ];
     const prefixArgs = process.env.ADVISOR_CODEX_PREFIX_ARGS ? JSON.parse(process.env.ADVISOR_CODEX_PREFIX_ARGS) : [];
