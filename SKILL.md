@@ -107,6 +107,29 @@ Say explicitly which harnesses were skipped (not installed). If a shared proxy w
 piece, report it first (it cascades to every harness routed through it). Call out any
 runtime-vs-config model mismatch.
 
+
+## Optional Codex Advisor MCP
+
+The repository includes a separate read-only Advisor MCP at `mcp/advisor/`. It is optional and
+is not part of the verifier's read-only checks. If the user asks to install or verify it:
+
+```bash
+npm --prefix mcp/advisor install
+npm --prefix mcp/advisor test
+npm --prefix mcp/advisor run install:codex
+codex mcp list
+```
+
+The installer appends anti-Yes-man and Advisor call-timing instructions to the active global
+Codex instructions file and registers the MCP server in `~/.codex/config.toml`. It backs up
+existing files and is idempotent. Restart Codex, then invoke the `advisor` tool once with a
+complete context to verify the real tool call. Uninstall with
+`npm --prefix mcp/advisor run uninstall:codex`.
+
+The Advisor uses a separate ephemeral Codex inference with shell, unified execution, code mode,
+multi-agent, apps, plugins, web search, and configured MCP servers disabled. It returns advice
+only. The parent agent remains responsible for implementation and verification.
+
 ## Extending: add a harness or custom check
 1. Config: add the config path + format to `verify.sh` (JSON/TOML/YAML/JSONC helper) in an
    existence-gated block, mirroring the existing ones.
@@ -116,8 +139,7 @@ runtime-vs-config model mismatch.
 
 ## Security / privacy (important)
 - The skill never prints secret values (tokens, API keys, auth contents) — only validity + modes.
-- It never modifies configs, never sends data to any network, never reads outside `$HOME` agent
-  config dirs.
+- The verifier skill itself never modifies configs, never sends data to any network, and never reads outside `$HOME` agent config dirs. The optional Advisor MCP is separate; it sends only context explicitly passed by the parent agent to the configured Codex model endpoint.
 - Secret files (auth.json, credentials, env with tokens) should be mode 0600; `verify.sh` flags
   anything else.
 - If a harness binary is invoked during a probe, it runs as your user — don't point probes at
