@@ -12,6 +12,19 @@ export function createAdvisorServer() {
       "The Advisor runs in a separate ephemeral Codex session. User MCP servers, apps, and plugins are removed. Shell and code tools are disabled where supported; the child uses a read-only sandbox and deny-read rules for the user home and temporary credential/config files. The reviewer is instructed not to call tools.",
       "The main agent owns the final decision and implementation. Do not call for trivial reactive steps."
     ].join(" "),
+    outputSchema: z.object({
+      model: z.string(),
+      decision_point: z.string(),
+      advice: z.object({
+        verdict: z.enum(["support", "challenge", "insufficient_evidence"]),
+        rationale: z.string(),
+        challenge: z.string(),
+        simpler_alternative: z.string(),
+        evidence_gaps: z.array(z.string()),
+        risks: z.array(z.string()),
+        recommended_next_step: z.string()
+      })
+    }),
     inputSchema: z.object({
       context: z.string().min(20).max(120_000).describe("Full relevant transcript: task, constraints, proposed solution, key tool calls/results, evidence, failures, and current state."),
       decision_point: z.enum(["before_approach", "stuck", "approach_change", "before_completion", "user_challenge", "other"]).default("before_approach"),
