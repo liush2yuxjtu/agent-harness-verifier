@@ -35,3 +35,29 @@ the provider/proxy alias config. If the header shows a model, note which — com
 - Model errors → proxy `oauth-model-alias` misconfiguration (upstream GPT-5.6 IDs changed).
 - config.toml syntax error → codex refuses to start; `codex --version` won't catch it, read the pane.
 - Codex is NOT a Claude Code settings consumer — don't check `~/.claude` for codex issues.
+
+## Optional independent Advisor MCP
+
+This repository provides `mcp/advisor/`, a local stdio MCP server exposing the `advisor` tool.
+The installer appends anti-Yes-man rules and Advisor call timing to the active global Codex
+instructions file (`AGENTS.override.md` when present, otherwise `AGENTS.md`) and registers the
+server in `~/.codex/config.toml`.
+
+Install and verify:
+```bash
+npm --prefix mcp/advisor install
+npm --prefix mcp/advisor test
+npm --prefix mcp/advisor run install:codex
+codex mcp list
+```
+
+The MCP tool requires the parent to pass the full relevant transcript in `context`; MCP does not
+automatically expose the caller's conversation history. It starts an isolated, ephemeral Codex
+review inference using the existing auth file and selected model (default `gpt-6-astra`). The
+reviewer is instructed not to call tools and has execution, code-mode, multi-agent, apps, plugins,
+web search, and user MCP servers disabled. Codex CLI does not currently provide a stable
+`--no-tools` switch, so this is a constrained no-tools-by-policy implementation, not a guarantee
+that the model receives zero tool declarations.
+
+The Advisor returns structured advice only. It does not edit files or execute the user's task.
+The parent agent owns the final decision and implementation.
