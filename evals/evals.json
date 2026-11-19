@@ -24,6 +24,12 @@
       "prompt": "全新机器，只装了 opencode，没有 claude/codex/pi，也没有 claudex。verify 一下我的 opencode 配置。",
       "expected_output": "discover.sh 只列 opencode；verify.sh 只跑 opencode 检查 + secret hygiene，claude/codex/pi 和 custom/local (claudex) block 全部跳过并明确说明 not installed；不报任何与缺失 harness 相关的 FAIL。",
       "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "我安装了 Codex Advisor MCP。请 verify 它是否真实注册、启动路径有效、全局 anti-Yes-man 指令已注入；不要打印任何 auth 或 token 内容。",
+      "expected_output": "verify.sh 检查 ~/.codex/config.toml 中的 mcp_servers.advisor，确认 node 命令和 MCP 源文件路径存在；检查当前生效的 AGENTS.override.md 或 AGENTS.md 含 CODEX_ADVISOR_BEGIN/END；不读取或打印 auth.json 内容；报告 Advisor MCP PASS/FAIL。",
+      "files": []
     }
   ]
 }
