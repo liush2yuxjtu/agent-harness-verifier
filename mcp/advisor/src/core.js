@@ -109,13 +109,13 @@ export function mergeDenyReadPaths(configText, protectedPaths) {
     lines.splice(end, 0, `deny_read = [${additions.map((value) => JSON.stringify(value)).join(", ")}]`);
     return `${lines.join("\n").trimEnd()}\n`;
   }
-  let closeIndex = denyIndex;
-  while (closeIndex < end && !lines[closeIndex].includes("]")) closeIndex += 1;
-  if (closeIndex >= end) throw new Error("Existing permissions.filesystem.deny_read array is malformed.");
-  const existingBlock = lines.slice(denyIndex, closeIndex + 1).join("\n");
-  if (!existingBlock.includes("[")) throw new Error("Existing permissions.filesystem.deny_read must be an array of paths.");
-  const existingPaths = [...existingBlock.matchAll(/"((?:\\.|[^"\\])*)"/g)].map((match) => JSON.parse(`"${match[1]}"`));
+  const denyLine = lines[denyIndex];
+  const arrayMatch = denyLine.match(/^\\s*deny_read\\s*=\\s*\\[(.*)\\]\\s*(?:#.*)?$/);
+  if (!arrayMatch) throw new Error("Existing permissions.filesystem.deny_read must be a single-line array; refusing to rewrite it.");
+  const existingPaths = [...arrayMatch[1].matchAll(/"((?:\\\\.|[^"\\\\])*)"/g)].map((match) => JSON.parse(`"${match[1]}"`));
+  const residue = arrayMatch[1].replace(/"(?:\\\\.|[^"\\\\])*"/g, "").replaceAll(",", "").trim();
+  if (residue) throw new Error("Existing permissions.filesystem.deny_read contains unsupported values; refusing to rewrite it.");
   const merged = [...new Set([...existingPaths, ...additions])];
-  lines.splice(denyIndex, closeIndex - denyIndex + 1, `deny_read = [${merged.map((value) => JSON.stringify(value)).join(", ")}]`);
+  lines.splice(denyIndex, 1, `deny_read = [${merged.map((value) => JSON.stringify(value)).join(", ")}]`);
   return `${lines.join("\n").trimEnd()}\n`;
 }
