@@ -56,6 +56,26 @@ bash ~/.claude/skills/agent-harness-verifier/scripts/verify.sh
 The TUI smoke test runs through the skill (SKILL.md) — it needs a terminal, so it's driven by
 Claude in your session, not as a standalone one-liner.
 
+
+## Optional: Independent Codex Advisor
+
+This repository also contains a separate MCP server at `mcp/advisor/`. It adds a read-only
+`advisor` tool to Codex and appends anti-Yes-man + Advisor calling rules to the active global
+Codex instructions file. It uses the existing Codex login; it does not create an API key.
+
+```bash
+npm --prefix mcp/advisor install
+npm --prefix mcp/advisor test
+npm --prefix mcp/advisor run install:codex
+codex mcp list
+```
+
+Restart Codex after installation. See [`mcp/advisor/README.md`](mcp/advisor/README.md) for the
+architecture, data flow, limitations, and uninstall command. The verifier remains read-only;
+the optional Advisor MCP is a separate runtime component. It sends the relevant context explicitly
+provided by the parent agent to the configured Codex model endpoint. Do not include credentials,
+tokens, or unrelated private data in that context.
+
 ## Adding a harness or custom setup
 
 1. **Config**: add an existence-gated block to `scripts/verify.sh` using the JSON/TOML/YAML/JSONC
@@ -68,7 +88,7 @@ Claude in your session, not as a standalone one-liner.
 ## Security / privacy
 
 - Never prints secret values (tokens, API keys, auth contents) — only validity and modes.
-- Never modifies configs, sends data to any network, or reads outside agent config dirs.
+- The verifier itself never modifies configs, sends data to any network, or reads outside agent config dirs. The optional Advisor MCP is separate and sends only the context explicitly passed by the parent agent to the configured model endpoint.
 - Secret files must be mode 0600; `verify.sh` flags anything else.
 - Never requires root.
 
