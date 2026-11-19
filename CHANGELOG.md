@@ -2,6 +2,17 @@
 
 All notable changes to agent-harness-verifier.
 
+## [0.4.0] - 2026-11-19
+### Added
+- Optional Codex Advisor MCP with an independent read-only reviewer inference.
+- Idempotent installer/uninstaller for MCP registration and global anti-Yes-man / Advisor instructions.
+- Advisor input, prompt, isolation, response-contract, and MCP smoke tests.
+- Optional Advisor configuration checks in the harness verifier.
+
+### Security
+- The verifier remains read-only. The optional Advisor MCP sends only the full context explicitly supplied by the parent agent to the configured Codex model endpoint.
+- Advisor runs in a temporary workspace with MCP, apps, plugins, shell execution, code mode, web search, and multi-agent surfaces disabled.
+
 ## [0.3.0] - 2026-08-12
 ### Changed
 - **Portable / any-machine.** Removed machine-specific assumptions (model names, custom wrapper
