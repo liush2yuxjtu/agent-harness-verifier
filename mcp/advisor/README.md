@@ -12,14 +12,14 @@ Codex main agent
             ├─ same existing auth.json (symlinked; never printed)
             ├─ copied config with MCP / apps / plugin tables removed
             ├─ temporary advisor-only AGENTS.md
-            ├─ read-only sandbox
-            ├─ shell / unified exec / code mode / multi-agent v1+v2 / apps / plugins / all web-search features disabled
+            ├─ read-only sandbox + deny-read rules for user home and temporary credential/config files
+            ├─ child environment excludes API-key variables
             └─ JSON advice only
 ```
 
 The MCP tool call is the parent-facing interface. Internally, this implementation uses a separate Codex CLI inference because a normal MCP server cannot automatically read its caller's transcript. The parent must therefore pass the complete relevant transcript in `context`.
 
-This is not Anthropic's server-side Advisor implementation. Anthropic forwards the conversation internally and exposes no tools to its Advisor inference. Codex currently does not provide a stable `--no-tools` switch for `codex exec`; this server disables the available execution and delegation surfaces, runs in a read-only temporary workspace, and instructs the reviewer not to call tools. Treat this as a constrained, tool-less-by-policy fallback, not a cryptographic guarantee that the model receives zero tool declarations.
+This is not Anthropic's server-side Advisor implementation. Anthropic forwards the conversation internally and exposes no tools to its Advisor inference. Codex currently does not provide a stable `--no-tools` switch for `codex exec`; this server disables execution and delegation surfaces where supported, removes user MCP/app/plugin integrations, uses a read-only sandbox, denies reads from the user home and temporary credential/config files, and instructs the reviewer not to call tools. Some managed Codex configurations may still expose a read-only execution tool. Treat this as a constrained no-tools-by-policy fallback, not a guarantee that the model receives zero tool declarations.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ This is not Anthropic's server-side Advisor implementation. Anthropic forwards t
 - `~/.codex/auth.json` (or `$CODEX_HOME/auth.json`) with mode `0600`
 - The Codex model `gpt-6-astra` available, or set `ADVISOR_MODEL`
 
-The caller's `config.toml` is copied to a temporary Codex home with `mcp_servers`, `plugins`, and `apps` tables removed. Other model-provider routing settings are preserved. Temporary files are deleted after each call. The existing auth file is symlinked so Codex can use its current login; the server never reads or logs credential contents.
+The caller's `config.toml` is copied to a temporary Codex home with `mcp_servers`, `plugins`, and `apps` tables removed. Other model-provider routing settings are preserved. The child process receives a minimal environment without API-key variables. Temporary files are deleted after each call. The existing auth file is symlinked so Codex can use its current login; the server never reads or logs credential contents.
 
 ## Install into Codex
 
