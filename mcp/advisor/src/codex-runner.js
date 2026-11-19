@@ -1,17 +1,8 @@
 import { spawn } from "node:child_process";
-import {
-  chmod,
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  stat,
-  symlink,
-  writeFile,
-} from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { ADVISOR_SCHEMA, buildAdvisorPrompt, DEFAULT_MODEL, parseAdvisorResponse, stripToolServersFromConfig } from "./core.js";
+import { ADVISOR_SCHEMA, buildAdvisorPrompt, DEFAULT_MODEL, mergeDenyReadPaths, parseAdvisorResponse, stripToolServersFromConfig } from "./core.js";
 
 const ADVISOR_HOME_PROMPT = `# Independent Advisor
 
@@ -50,7 +41,7 @@ function runProcess(command, args, options, input, timeoutMs) {
   });
 }
 
-async function prepareAdvisorHome(sourceHome, tempHome) {
+async function prepareAdvisorHome(sourceHome, tempHome, tempRoot) {
   const authPath = path.join(sourceHome, "auth.json");
   const authStat = await stat(authPath).catch(() => null);
   if (!authStat?.isFile()) throw new Error(`Codex auth file not found at ${authPath}. Advisor requires the existing Codex login.`);
@@ -64,12 +55,10 @@ async function prepareAdvisorHome(sourceHome, tempHome) {
   }
   const configPath = path.join(sourceHome, "config.toml");
   const configText = await readFile(configPath, "utf8").catch(() => "");
-  const isolatedConfig = stripToolServersFromConfig(configText);
-  if (isolatedConfig) {
-    const isolatedPath = path.join(tempHome, "config.toml");
-    await writeFile(isolatedPath, isolatedConfig, {mode: 0o600});
-    await chmod(isolatedPath, 0o600);
-  }
+  const isolatedConfig = mergeDenyReadPaths(stripToolServersFromConfig(configText), [tempHome, `${tempHome}/**`, `${tempRoot}/**`, `${os.homedir()}/**`]);
+  const isolatedPath = path.join(tempHome, "config.toml");
+  await writeFile(isolatedPath, isolatedConfig, {mode: 0o600});
+  await chmod(isolatedPath, 0o600);
   await writeFile(path.join(tempHome, "AGENTS.md"), ADVISOR_HOME_PROMPT, {mode: 0o600});
 }
 
@@ -85,7 +74,7 @@ export async function runCodexAdvisor({context, decision_point, focus}) {
   const outputPath = path.join(tempRoot, "advisor-output.json");
   try {
     await Promise.all([mkdir(tempHome, {recursive: true, mode: 0o700}), mkdir(workspace, {recursive: true, mode: 0o700})]);
-    await prepareAdvisorHome(codexHome, tempHome);
+    await prepareAdvisorHome(codexHome, tempHome, tempRoot);
     await writeFile(schemaPath, JSON.stringify(ADVISOR_SCHEMA), {mode: 0o600});
     const args = [
       "exec", "--ephemeral", "--ignore-rules", "--skip-git-repo-check",
@@ -100,7 +89,21 @@ export async function runCodexAdvisor({context, decision_point, focus}) {
     ];
     const prefixArgs = process.env.ADVISOR_CODEX_PREFIX_ARGS ? JSON.parse(process.env.ADVISOR_CODEX_PREFIX_ARGS) : [];
     if (!Array.isArray(prefixArgs) || prefixArgs.some((value) => typeof value !== "string")) throw new Error("ADVISOR_CODEX_PREFIX_ARGS must be a JSON array of strings.");
-    await runProcess(codexBin, [...prefixArgs, ...args], {cwd: workspace, env: {...process.env, CODEX_HOME: tempHome}}, buildAdvisorPrompt({context, decision_point, focus}), timeoutMs);
+    const safePath = process.platform === "darwin" ? "/usr/bin:/bin:/usr/sbin:/sbin" : "/usr/bin:/bin";
+    const childEnv = {
+      PATH: safePath,
+      HOME: tempRoot,
+      CODEX_HOME: tempHome,
+      TMPDIR: tempRoot,
+      XDG_CONFIG_HOME: tempRoot,
+      XDG_CACHE_HOME: tempRoot,
+      LANG: process.env.LANG || "C.UTF-8",
+      TERM: process.env.TERM || "dumb",
+      USER: process.env.USER || "codex-advisor",
+      LOGNAME: process.env.LOGNAME || process.env.USER || "codex-advisor",
+      SHELL: "/bin/sh"
+    };
+    await runProcess(codexBin, [...prefixArgs, ...args], {cwd: workspace, env: childEnv}, buildAdvisorPrompt({context, decision_point, focus}), timeoutMs);
     const raw = await readFile(outputPath, "utf8");
     return {model, decision_point, advice: parseAdvisorResponse(raw)};
   } finally {
