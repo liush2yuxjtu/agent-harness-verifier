@@ -126,9 +126,7 @@ existing files and is idempotent. Restart Codex, then invoke the `advisor` tool 
 complete context to verify the real tool call. Uninstall with
 `npm --prefix mcp/advisor run uninstall:codex`.
 
-The Advisor uses a separate ephemeral Codex inference with shell, unified execution, code mode,
-multi-agent, apps, plugins, web search, and configured MCP servers disabled. It returns advice
-only. The parent agent remains responsible for implementation and verification.
+The Advisor uses a separate ephemeral Codex inference. User MCP servers, apps, and plugins are removed; shell and code surfaces are disabled where supported; a read-only sandbox and deny-read rules block the user home and temporary credential/config files; and API-key environment variables are not passed to the child. Some managed Codex configurations may still expose read-only execution. The reviewer is instructed not to call tools. The parent agent remains responsible for implementation and verification.
 
 ## Extending: add a harness or custom check
 1. Config: add the config path + format to `verify.sh` (JSON/TOML/YAML/JSONC helper) in an
