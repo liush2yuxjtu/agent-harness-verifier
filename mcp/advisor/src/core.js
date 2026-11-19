@@ -18,12 +18,8 @@ export const ADVISOR_SCHEMA = {
 
 export function validateAdvisorInput(input) {
   if (!input || typeof input !== "object") throw new TypeError("Advisor input must be an object.");
-  if (typeof input.context !== "string" || input.context.trim().length < 20) {
-    throw new TypeError("context must contain the task and relevant conversation evidence.");
-  }
-  if (input.context.length > MAX_CONTEXT_CHARS) {
-    throw new RangeError(`context exceeds ${MAX_CONTEXT_CHARS} characters; provide the complete relevant evidence without unrelated history.`);
-  }
+  if (typeof input.context !== "string" || input.context.trim().length < 20) throw new TypeError("context must contain the task and relevant conversation evidence.");
+  if (input.context.length > MAX_CONTEXT_CHARS) throw new RangeError(`context exceeds ${MAX_CONTEXT_CHARS} characters; provide the complete relevant evidence without unrelated history.`);
   const decisionPoints = new Set(["before_approach", "stuck", "approach_change", "before_completion", "user_challenge", "other"]);
   const decisionPoint = input.decision_point ?? "before_approach";
   if (!decisionPoints.has(decisionPoint)) throw new TypeError(`Unsupported decision_point: ${decisionPoint}`);
@@ -69,15 +65,7 @@ export function validateAdvisorResponse(value) {
   for (const field of ["evidence_gaps", "risks"]) {
     if (!Array.isArray(value[field]) || value[field].some((item) => typeof item !== "string")) throw new TypeError(`Advisor response field ${field} must be an array of strings.`);
   }
-  return {
-    verdict: value.verdict,
-    rationale: value.rationale,
-    challenge: value.challenge,
-    simpler_alternative: value.simpler_alternative,
-    evidence_gaps: value.evidence_gaps,
-    risks: value.risks,
-    recommended_next_step: value.recommended_next_step
-  };
+  return {verdict: value.verdict, rationale: value.rationale, challenge: value.challenge, simpler_alternative: value.simpler_alternative, evidence_gaps: value.evidence_gaps, risks: value.risks, recommended_next_step: value.recommended_next_step};
 }
 
 export function parseAdvisorResponse(raw) {
@@ -103,4 +91,31 @@ export function stripToolServersFromConfig(configText) {
     if (!skipping && !(currentTable === "" && /^\s*(mcp_servers|plugins|apps)\s*=/.test(line))) output.push(line);
   }
   return output.join("\n").trim() ? `${output.join("\n").trimEnd()}\n` : "";
+}
+
+export function mergeDenyReadPaths(configText, protectedPaths) {
+  const lines = configText.split(/\r?\n/);
+  const header = "[permissions.filesystem]";
+  const start = lines.findIndex((line) => line.trim() === header);
+  const additions = [...new Set(protectedPaths.filter((value) => typeof value === "string" && value.length > 0))];
+  if (start < 0) {
+    if (lines.some((line) => /^\s*permissions\s*=/.test(line))) throw new Error("Cannot safely add Advisor deny-read rules to an inline permissions table.");
+    return `${configText.trimEnd()}${configText.trim() ? "\n\n" : ""}${header}\ndeny_read = [${additions.map((value) => JSON.stringify(value)).join(", ")}]\n`;
+  }
+  let end = lines.findIndex((line, index) => index > start && /^\s*\[/.test(line));
+  if (end < 0) end = lines.length;
+  const denyIndex = lines.findIndex((line, index) => index > start && index < end && /^\s*deny_read\s*=/.test(line));
+  if (denyIndex < 0) {
+    lines.splice(end, 0, `deny_read = [${additions.map((value) => JSON.stringify(value)).join(", ")}]`);
+    return `${lines.join("\n").trimEnd()}\n`;
+  }
+  let closeIndex = denyIndex;
+  while (closeIndex < end && !lines[closeIndex].includes("]")) closeIndex += 1;
+  if (closeIndex >= end) throw new Error("Existing permissions.filesystem.deny_read array is malformed.");
+  const existingBlock = lines.slice(denyIndex, closeIndex + 1).join("\n");
+  if (!existingBlock.includes("[")) throw new Error("Existing permissions.filesystem.deny_read must be an array of paths.");
+  const existingPaths = [...existingBlock.matchAll(/"((?:\\.|[^"\\])*)"/g)].map((match) => JSON.parse(`"${match[1]}"`));
+  const merged = [...new Set([...existingPaths, ...additions])];
+  lines.splice(denyIndex, closeIndex - denyIndex + 1, `deny_read = [${merged.map((value) => JSON.stringify(value)).join(", ")}]`);
+  return `${lines.join("\n").trimEnd()}\n`;
 }
