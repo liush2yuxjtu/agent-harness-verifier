@@ -70,7 +70,7 @@ npm --prefix mcp/advisor run install:codex
 codex mcp list
 ```
 
-Restart Codex after installation. See [`mcp/advisor/README.md`](mcp/advisor/README.md) for the
+The root `AGENTS.md` also applies the same behavior within this repository; the installer makes it global. Restart Codex after installation. See [`mcp/advisor/README.md`](mcp/advisor/README.md) for the
 architecture, data flow, limitations, and uninstall command. The verifier remains read-only;
 the optional Advisor MCP is a separate runtime component. It sends the relevant context explicitly
 provided by the parent agent to the configured Codex model endpoint. Do not include credentials,
