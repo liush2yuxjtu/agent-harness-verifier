@@ -16,6 +16,9 @@ const config = await readFile(path.join(home, "config.toml"), "utf8");
 if (!auth.includes("fake-auth")) process.exit(23);
 if (!instructions.includes("Do not call tools")) process.exit(24);
 if (config.includes("mcp_servers") || config.includes("plugins")) process.exit(25);
+if (!config.includes("deny_read") || !config.includes(process.env.CODEX_HOME)) process.exit(26);
+if (process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY) process.exit(27);
+if (process.env.HOME === process.env.CODEX_HOME) process.exit(28);
 await writeFile(args[outputIndex + 1], JSON.stringify({
   verdict: "challenge",
   rationale: "The current design adds an avoidable dependency.",
