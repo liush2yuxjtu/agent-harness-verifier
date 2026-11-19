@@ -41,7 +41,7 @@ npm --prefix mcp/advisor run install:codex
 codex mcp list
 ```
 
-The installer appends a clearly marked block to the active global Codex instructions file (`~/.codex/AGENTS.override.md` when present, otherwise `~/.codex/AGENTS.md`) and adds `[mcp_servers.advisor]` to `~/.codex/config.toml`. It backs up both files before editing and is idempotent.
+The root `AGENTS.md` provides the same project-local behavior. The installer appends a clearly marked block to the active global Codex instructions file (`~/.codex/AGENTS.override.md` when present, otherwise `~/.codex/AGENTS.md`) and adds `[mcp_servers.advisor]` to `~/.codex/config.toml`. It backs up both files before editing and is idempotent.
 
 Restart Codex after installation. The tool is named `advisor` on the MCP server `advisor`.
 
