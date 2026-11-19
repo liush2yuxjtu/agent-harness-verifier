@@ -50,6 +50,11 @@ test("adds deny-read rules for private paths without losing existing rules", () 
   assert.match(result, /\[features\]/);
 });
 
+test("fails closed on a multiline deny-read array", () => {
+  const config = '[permissions.filesystem]\ndeny_read = [\n  "/existing/private",\n]\n';
+  assert.throws(() => mergeDenyReadPaths(config, ["/tmp/advisor-home"]), /single-line array/);
+});
+
 test("parses valid advisor output and rejects malformed output", () => {
   assert.deepEqual(parseAdvisorResponse(JSON.stringify(validAdvice)), validAdvice);
   assert.throws(() => parseAdvisorResponse("not JSON"), /valid JSON/);
