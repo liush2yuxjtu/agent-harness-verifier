@@ -9,7 +9,7 @@ export function createAdvisorServer() {
     description: [
       "Read-only independent strategic review. Call before committing to a non-trivial approach, when stuck or changing approach, and before declaring completion.",
       "Pass the full relevant conversation context, not a one-line summary: user goal and constraints, proposed approach, key tool calls and results, evidence, failed attempts, and current state. Exclude credentials and unrelated private data.",
-      "The Advisor runs as a separate GPT-6 Astra Codex inference with shell, MCP, app, web-search, and multi-agent tools disabled. It returns advice only; it cannot edit files or execute work.",
+      "The Advisor runs in a separate ephemeral Codex session. User MCP servers, apps, and plugins are removed. Shell and code tools are disabled where supported; the child uses a read-only sandbox and deny-read rules for the user home and temporary credential/config files. The reviewer is instructed not to call tools.",
       "The main agent owns the final decision and implementation. Do not call for trivial reactive steps."
     ].join(" "),
     inputSchema: z.object({
