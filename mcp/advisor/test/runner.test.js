@@ -21,10 +21,14 @@ test("runs an isolated read-only advisor process and returns structured advice",
   const previousBin = process.env.CODEX_BIN;
   const previousModel = process.env.ADVISOR_MODEL;
   const previousPrefixArgs = process.env.ADVISOR_CODEX_PREFIX_ARGS;
+  const previousApiKey = process.env.OPENAI_API_KEY;
+  const previousAnthropicKey = process.env.ANTHROPIC_API_KEY;
   process.env.CODEX_HOME = codexHome;
   process.env.CODEX_BIN = process.execPath;
   process.env.ADVISOR_CODEX_PREFIX_ARGS = JSON.stringify([path.join(here, "fake-codex.js")]);
   process.env.ADVISOR_MODEL = "gpt-6-astra";
+  process.env.OPENAI_API_KEY = "must-not-pass";
+  process.env.ANTHROPIC_API_KEY = "must-not-pass";
   try {
     const result = await runCodexAdvisor({context: "User wants a local tool. Main agent proposed a remote service. Existing CLI already provides the required function.", decision_point: "before_approach", focus: "Find the simplest viable architecture."});
     assert.equal(result.model, "gpt-6-astra");
@@ -35,6 +39,8 @@ test("runs an isolated read-only advisor process and returns structured advice",
     if (previousBin === undefined) delete process.env.CODEX_BIN; else process.env.CODEX_BIN = previousBin;
     if (previousModel === undefined) delete process.env.ADVISOR_MODEL; else process.env.ADVISOR_MODEL = previousModel;
     if (previousPrefixArgs === undefined) delete process.env.ADVISOR_CODEX_PREFIX_ARGS; else process.env.ADVISOR_CODEX_PREFIX_ARGS = previousPrefixArgs;
+    if (previousApiKey === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = previousApiKey;
+    if (previousAnthropicKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = previousAnthropicKey;
     await rm(root, {recursive: true, force: true});
   }
 });
