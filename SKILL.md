@@ -120,7 +120,7 @@ npm --prefix mcp/advisor run install:codex
 codex mcp list
 ```
 
-The installer appends anti-Yes-man and Advisor call-timing instructions to the active global
+The repository root `AGENTS.md` provides the same project-local instructions. The installer appends anti-Yes-man and Advisor call-timing instructions to the active global
 Codex instructions file and registers the MCP server in `~/.codex/config.toml`. It backs up
 existing files and is idempotent. Restart Codex, then invoke the `advisor` tool once with a
 complete context to verify the real tool call. Uninstall with
